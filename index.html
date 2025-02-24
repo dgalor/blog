@@ -1,1 +1,114 @@
-/annex/objects/SHA256E-s3523--f887282fd046a72b7e89e3b06114809cb3be591b6934d1fe9cadae9a7c6318fa.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #0366d6;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .blog-posts {
+            margin-top: 20px;
+        }
+        .post {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .post h2 {
+            margin: 0;
+            color: #0366d6;
+        }
+        .post p {
+            color: #555;
+        }
+        .read-more {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 10px;
+            background: #0366d6;
+            color: white;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+        .read-more:hover {
+            background: #024ea2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">My Blog</div>
+        <div class="blog-posts" id="blog-posts">
+            <p>Loading posts...</p>
+        </div>
+    </div>
+
+    <script>
+        async function fetchBlogPosts() {
+            const url = "https://github.com/dgalor/blog";
+            const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+            if (!match) {
+                alert("Invalid GitHub repository URL.");
+                return;
+            }
+
+            const owner = match[1];
+            const repo = match[2];
+            const repoUrl = `https://api.github.com/repos/${owner}/${repo}/contents`;
+
+            const blogContainer = document.getElementById("blog-posts");
+
+            try {
+                const response = await fetch(repoUrl);
+                if (!response.ok) throw new Error("Failed to load posts");
+
+                const files = await response.json();
+                blogContainer.innerHTML = ""; // Clear loading text
+
+                files.forEach(file => {
+                    if (file.name.endsWith(".html") && (file.name !== "index.html")) {
+                        const postDiv = document.createElement("div");
+                        postDiv.classList.add("post");
+                        url_f = `https://dgalor.github.io/blog/${file.name}`;
+                        const title = file.name.replace(/-/g, " ").replace(".html", "");
+                        postDiv.innerHTML = `
+                            <h2>${title}</h2>
+                            <p>Click below to read this post.</p>
+                            <a href="${url_f}" target="_blank" class="read-more">Read More</a>
+                        `;
+
+                        blogContainer.appendChild(postDiv);
+                    }
+                });
+            } catch (error) {
+                blogContainer.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        fetchBlogPosts();
+    </script>
+
+</body>
+</html>
