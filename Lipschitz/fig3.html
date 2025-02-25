@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Sin(x) with Gradient Descent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Obsidian-inspired dark theme */
+    body {
+      margin: 0;
+      background-color: #282a36;
+      color: #f8f8f2;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+    }
+    #controls {
+      padding: 10px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #canvasContainer {
+      flex: 1;
+      width: 100%;
+      position: relative;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    input[type=range] {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <div>
+      <label for="stepSize">Step Size: <span id="stepValue">0.1</span></label>
+      <input type="range" id="stepSize" min="0.1" max="10" step="0.1" value="1.0">
+    </div>
+    <div>
+      <label for="stepCount">Steps: <span id="countValue">50</span></label>
+      <input type="range" id="stepCount" min="1" max="100" step="1" value="10">
+    </div>
+  </div>
+  <div id="canvasContainer">
+    <canvas id="graphCanvas"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("graphCanvas");
+    const ctx = canvas.getContext("2d");
+    const stepSizeSlider = document.getElementById("stepSize");
+    const stepCountSlider = document.getElementById("stepCount");
+    const stepValueLabel = document.getElementById("stepValue");
+    const countValueLabel = document.getElementById("countValue");
+
+    // Set up coordinate system: you can adjust domain/range as needed.
+    let xMin = -10, xMax = 10, yMin = -2, yMax = 2;
+
+    // Update canvas size to fill its container.
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      draw();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    
+    // Mapping from math coordinates to canvas coordinates.
+    function toCanvasX(x) {
+      return ((x - xMin) / (xMax - xMin)) * canvas.width;
+    }
+    function toCanvasY(y) {
+      // Canvas y axis is inverted (0 is at top)
+      return canvas.height - ((y - yMin) / (yMax - yMin)) * canvas.height;
+    }
+
+    // Draw sin(x) curve and gradient descent path.
+    function draw() {
+      // Clear canvas.
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw sin(x) curve.
+      ctx.strokeStyle = "#8be9fd";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const step = (xMax - xMin) / canvas.width;
+      for (let x = xMin; x <= xMax; x += step) {
+        let y = Math.sin(x);
+        let cx = toCanvasX(x);
+        let cy = toCanvasY(y);
+        if (x === xMin) {
+          ctx.moveTo(cx, cy);
+        } else {
+          ctx.lineTo(cx, cy);
+        }
+      }
+      ctx.stroke();
+
+      // Update slider labels.
+      const stepSize = parseFloat(stepSizeSlider.value);
+      const numSteps = parseInt(stepCountSlider.value);
+      stepValueLabel.textContent = stepSize;
+      countValueLabel.textContent = numSteps;
+
+      // Compute and draw gradient descent path on sin(x).
+      // For sin(x), gradient is cos(x).
+      let points = [];
+      let x_current = 2; // starting x value
+      for (let i = 0; i < numSteps; i++) {
+        points.push({ x: x_current, y: Math.sin(x_current) });
+        // Gradient descent update: x = x - (stepSize * derivative)
+        x_current = x_current - stepSize * Math.cos(x_current);
+      }
+      
+      ctx.strokeStyle = "#ff5555";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let i = 0; i < points.length; i++) {
+        let pt = points[i];
+        let cx = toCanvasX(pt.x);
+        let cy = toCanvasY(pt.y);
+        if (i === 0) {
+          ctx.moveTo(cx, cy);
+        } else {
+          ctx.lineTo(cx, cy);
+        }
+      }
+      ctx.stroke();
+
+      // Optionally, mark the points.
+      ctx.fillStyle = "#ff5555";
+      for (let pt of points) {
+        ctx.beginPath();
+        ctx.arc(toCanvasX(pt.x), toCanvasY(pt.y), 3, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+
+    // Update drawing when slider changes.
+    stepSizeSlider.addEventListener("input", draw);
+    stepCountSlider.addEventListener("input", draw);
+
+    // Initial call.
+    resizeCanvas();
+  </script>
+</body>
+</html>
