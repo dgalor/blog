@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Double Cone Lipschitz Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background-color: #282828;
+      color: #ddd;
+      font-family: sans-serif;
+    }
+    /* Position the slider nicely on top of the canvas */
+    #slider-container {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      background: rgba(40, 40, 40, 0.8);
+      padding: 8px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="slider-container">
+    <label for="LSlider">Slope L: </label>
+    <span id="LValue">1.0</span>
+  </div>
+  <script>
+    let vertexPt;         // The draggable vertex of the cone
+    let draggingVertex = false;
+    let slider;
+    let L = 1;            // initial slope value
+
+    // Coordinate transformation parameters
+    let scaleX, scaleY, offsetX, offsetY;
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      calculateTransforms();
+
+      // Initialize the vertex on the sin(x) curve at x = 0
+      let initX = 0;
+      vertexPt = { x: initX, y: sin(initX) };
+
+      // Create a slider for L, from 1 to 4, with step 0.1.
+      slider = createSlider(1, 4, 1, 0.1);
+      slider.position(100, 20);
+      slider.style('width', '200px');
+    }
+
+    function draw() {
+      background('#282828');
+
+      // Update L from slider and update the label
+      L = slider.value();
+      select('#LValue').html(L.toFixed(1));
+
+      // Draw the sin(x) function in the background
+      stroke('#55a');
+      strokeWeight(2);
+      noFill();
+      beginShape();
+      // Draw from -4π to 4π in our coordinate system
+      for (let x = -4 * PI; x <= 4 * PI; x += 0.01) {
+        let sx = x * scaleX + offsetX;
+        let sy = offsetY - sin(x) * scaleY; // flip y for canvas coordinates
+        vertex(sx, sy);
+      }
+      endShape();
+
+      // Draw the double cone lines
+      // The two lines have equations: y = vertexPt.y ± L*(x - vertexPt.x)
+      stroke('#f90');
+      strokeWeight(2);
+      // We'll draw over an x-range a bit wider than the canvas for visual effect.
+      let xmin = -4 * PI, xmax = 4 * PI;
+      
+      // Compute endpoints for the upper line (slope +L)
+      let x1 = xmin;
+      let y1 = vertexPt.y + L * (x1 - vertexPt.x);
+      let x2 = xmax;
+      let y2 = vertexPt.y + L * (x2 - vertexPt.x);
+      line(x1 * scaleX + offsetX, offsetY - y1 * scaleY,
+           x2 * scaleX + offsetX, offsetY - y2 * scaleY);
+
+      // Lower line (slope -L)
+      y1 = vertexPt.y - L * (x1 - vertexPt.x);
+      y2 = vertexPt.y - L * (x2 - vertexPt.x);
+      line(x1 * scaleX + offsetX, offsetY - y1 * scaleY,
+           x2 * scaleX + offsetX, offsetY - y2 * scaleY);
+
+      // Draw the draggable vertex
+      let vx = vertexPt.x * scaleX + offsetX;
+      let vy = offsetY - vertexPt.y * scaleY;
+      noStroke();
+      fill('#f00');
+      ellipse(vx, vy, 20, 20);
+
+      // Optionally, draw a small label at the vertex showing its coordinates
+      fill('#ddd');
+      noStroke();
+      textSize(14);
+      textAlign(LEFT, BOTTOM);
+      text(`(${vertexPt.x.toFixed(2)}, ${vertexPt.y.toFixed(2)})`, vx + 10, vy - 10);
+    }
+
+    // Update transformation parameters on resize
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      calculateTransforms();
+    }
+
+    // Helper: set scaleX, scaleY, offsetX, offsetY so that the graph is centered
+    function calculateTransforms() {
+      // Let x range cover about 8π units and y range cover [-1.5, 1.5]
+      scaleX = width / (8 * PI);
+      scaleY = height / 3; // since vertical range is 3 units
+      offsetX = width / 2;
+      offsetY = height / 2;
+    }
+
+    // Handle mouse interaction for dragging the vertex
+    function mousePressed() {
+      let vx = vertexPt.x * scaleX + offsetX;
+      let vy = offsetY - vertexPt.y * scaleY;
+      // Check if the mouse is close enough to the vertex (within a radius)
+      if (dist(mouseX, mouseY, vx, vy) < 10) {
+        draggingVertex = true;
+      }
+    }
+
+    function mouseDragged() {
+      if (draggingVertex) {
+        // Convert mouseX to our x-coordinate system
+        let newX = (mouseX - offsetX) / scaleX;
+        // Set the vertex to lie on the sin(x) curve
+        vertexPt.x = newX;
+        vertexPt.y = sin(newX);
+      }
+    }
+
+    function mouseReleased() {
+      draggingVertex = false;
+    }
+  </script>
+</body>
+</html>
