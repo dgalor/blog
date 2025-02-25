@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lipschitz Continuity Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background-color: #282828;
+      color: #ddd;
+      font-family: sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<script>
+  let dot1, dot2;
+  let draggingDot = null;
+  let scaleX, scaleY, offsetX, offsetY;
+
+  function setup() {
+    createCanvas(windowWidth, windowHeight);
+    // Define coordinate system:
+    // We show about 8π units wide (can adjust) and scale vertically so sin(x) fits nicely.
+    scaleX = width / (8 * PI);
+    scaleY = height / 2;
+    offsetX = width / 2;
+    offsetY = height / 2;
+    
+    // Initialize two dots on the sin(x) curve
+    dot1 = { x: -PI, y: sin(-PI) };
+    dot2 = { x: PI, y: sin(PI) };
+  }
+
+  function draw() {
+    background('#282828');
+    
+    // Draw the horizontal axis
+    stroke('#888');
+    strokeWeight(1);
+    line(0, offsetY, width, offsetY);
+    
+    // Draw the sin(x) function
+    stroke('#55a');
+    strokeWeight(2);
+    noFill();
+    beginShape();
+    for (let x = -4 * PI; x <= 4 * PI; x += 0.01) {
+      let sx = x * scaleX + offsetX;
+      let sy = -sin(x) * scaleY + offsetY; // invert y for canvas coordinates
+      vertex(sx, sy);
+    }
+    endShape();
+
+    // Convert dot coordinates to screen space
+    let sx1 = dot1.x * scaleX + offsetX;
+    let sy1 = -dot1.y * scaleY + offsetY;
+    let sx2 = dot2.x * scaleX + offsetX;
+    let sy2 = -dot2.y * scaleY + offsetY;
+    
+    // Draw the connecting line
+    stroke('#f90');
+    strokeWeight(2);
+    line(sx1, sy1, sx2, sy2);
+    
+    // Draw the draggable dots
+    noStroke();
+    fill('#f00');
+    ellipse(sx1, sy1, 20, 20);
+    ellipse(sx2, sy2, 20, 20);
+    
+    // Calculate and display the slope label
+    let slope = abs(dot2.y - dot1.y) / abs(dot2.x - dot1.x);
+    slope = slope.toFixed(3);
+    
+    // Place label above the center of the line
+    let mx = (sx1 + sx2) / 2;
+    let my = (sy1 + sy2) / 2;
+    fill('#ddd');
+    noStroke();
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    let label = `|f(x₂)-f(x₁)|/|x₂-x₁| = ${slope} ≤ 1`;
+    text(label, mx, my - 30);
+  }
+
+  function windowResized(){
+    resizeCanvas(windowWidth, windowHeight);
+    scaleX = width / (8 * PI);
+    scaleY = height / 2;
+    offsetX = width / 2;
+    offsetY = height / 2;
+  }
+
+  function mousePressed() {
+    // Check if the mouse is near either dot (using a radius threshold)
+    let sx1 = dot1.x * scaleX + offsetX;
+    let sy1 = -dot1.y * scaleY + offsetY;
+    let sx2 = dot2.x * scaleX + offsetX;
+    let sy2 = -dot2.y * scaleY + offsetY;
+    if (dist(mouseX, mouseY, sx1, sy1) < 10) {
+      draggingDot = dot1;
+    } else if (dist(mouseX, mouseY, sx2, sy2) < 10) {
+      draggingDot = dot2;
+    }
+  }
+
+  function mouseDragged() {
+    if (draggingDot !== null) {
+      // Convert mouseX coordinate to the graph's x coordinate
+      let newX = (mouseX - offsetX) / scaleX;
+      draggingDot.x = newX;
+      draggingDot.y = sin(newX);
+    }
+  }
+
+  function mouseReleased() {
+    draggingDot = null;
+  }
+</script>
+</body>
+</html>
