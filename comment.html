@@ -8,6 +8,14 @@
       script.setAttribute("theme", "github-dark");
       script.setAttribute("crossorigin", "anonymous");
       script.async = true;
-      document.body.appendChild(script);
+  
+      // Find the container div by its classes
+      const footerContainer = document.querySelector(".mod-footer.mod-ui");
+      if (footerContainer) {
+        footerContainer.appendChild(script);
+      } else {
+        console.error("No element with class 'mod-footer mod-ui' found.");
+      }
     });
 </script>
+  
