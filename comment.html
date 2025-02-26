@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html>
-  <body>
-    <script src="https://utteranc.es/client.js"
-        repo="dgalor/comments"
-        issue-term="url"
-        label="utterances"
-        theme="github-dark"
-        crossorigin="anonymous"
-        async>
-    </script>
-  </body>
-</html>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const script = document.createElement('script');
+      script.src = "https://utteranc.es/client.js";
+      script.setAttribute("repo", "dgalor/comments");
+      script.setAttribute("issue-term", "pathname");
+      script.setAttribute("label", "utterances");
+      script.setAttribute("theme", "github-dark");
+      script.setAttribute("crossorigin", "anonymous");
+      script.async = true;
+      document.body.appendChild(script);
+    });
+</script>
