@@ -75,7 +75,11 @@
     ellipse(sx2, sy2, 20, 20);
     
     // Calculate and display the slope label
-    let slope = abs(dot2.y - dot1.y) / abs(dot2.x - dot1.x);
+    if (dot1.x === dot2.x) {
+      let slope = cos(dot1.x);
+    } else {
+      let slope = abs(dot2.y - dot1.y) / abs(dot2.x - dot1.x);
+    }
     slope = slope.toFixed(3);
     
     // Place label above the center of the line
